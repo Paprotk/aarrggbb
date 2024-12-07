@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex to Color</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/e74c0ede07.js" crossorigin="anonymous"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+            border: 1px solid #333333;
+            width: 300px;
+            height: auto;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-box {
+            width: 200px;
+            padding: 10px;
+            background-color: #333333;
+            color: #ffffff;
+            border: 1px solid #555555;
+            border-radius: 4px;
+            outline: none;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        .input-box:focus {
+            border-color: #888888;
+        }
+
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #444444;
+            color: #ffffff;
+            border: 1px solid #666666;
+            border-radius: 4px;
+            font-family: 'Ubuntu', sans-serif;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            background: none;
+            border: none;
+        }
+
+        .output-box {
+            margin-top: auto;
+            font-size: 16px;
+            color: #ffffff;
+            display: none;
+            text-align: center;
+        }
+
+        .color-box {
+            padding: 5px;
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 15px;
+            display: none;
+            border-radius: 4px;
+        }
+
+        #colorValue {
+            animation: fadeIn 0.3s ease forwards; /* Fade-in animation */
+            white-space: nowrap;
+            margin: 10px;
+        }
+
+        .copy-feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 1s ease-out;
+            z-index: 1100;
+        }
+
+        .copy-feedback.success {
+            background-color: #28a745;
+        }
+
+        .copy-feedback.error {
+            background-color: #dc3545;
+        }
+
+        .fa-solid {
+            transform: scale(1.5);
+            text-align: center;
+            padding-right: 1px;
+            padding-left: 1px;
+            margin: 0;
+            color: #777777;
+            transition: color 0.3s ease;
+        }
+
+        .fa-solid:hover {
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        #alert-modal {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #alert-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease forwards;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        #alert-modal.hide {
+            animation: fadeOut 0.3s ease forwards;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            border: 1px solid #333333;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        #alert-message {
+            font-size: 18px;
+            margin-bottom: 10px;
+            margin-top: auto;
+        }
+
+        #alert-ok-btn {
+            padding: 10px 15px;
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        #alert-ok-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="input-container">
+            <input type="text" id="hexInput" class="input-box" placeholder="Enter Hex (AARRGGBB)" />
+            <button id="color-btn" onclick="convertHexToColor()"><i class="fa-solid fa-paint-brush"></i></button>
+        </div>
+
+        <div id="colorBox" class="color-box">
+            <p id="colorValue"></p>
+            <p id="colorName" style="font-size: 14px;"></p> <!-- Added for color name -->
+        </div>
+    </div>
+    
+    <div id="alert-modal">
+        <div class="modal-content">
+            <h3 id="alert-message">Alert message goes here</h3>
+            <button id="alert-ok-btn">OK</button>
+        </div>
+    </div>
+
+    <div id="copy-feedback" class="copy-feedback"></div>
+
+    <script>
+        window.onload = function() {
+            document.getElementById("hexInput").focus();
+        };
+        
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                document.getElementById('color-btn').click(); // Trigger the button click
+            }
+            return;
+        });
+
+        function convertHexToColor() {
+            var hex = document.getElementById('hexInput').value;
+
+            if (hex.startsWith('0x')) {
+                hex = hex.substring(2);
+            }
+
+            if (hex.length === 8) {
+                var alpha = parseInt(hex.substring(0, 2), 16);
+                var red = parseInt(hex.substring(2, 4), 16);
+                var green = parseInt(hex.substring(4, 6), 16);
+                var blue = parseInt(hex.substring(6, 8), 16);
+
+                var alphaDecimal = alpha / 255;
+                var alphaTrimmed = (alphaDecimal % 1 !== 0) ? alphaDecimal.toFixed(3) : alphaDecimal;
+
+                var color = `rgba(${red}, ${green}, ${blue}, ${alphaTrimmed})`;
+                var hexColor = `#${hex.substring(2)}`;
+
+                var colorBox = document.getElementById('colorBox');
+                var colorValue = document.getElementById('colorValue');
+                var colorName = document.getElementById('colorName');
+                colorBox.style.display = 'block';
+                colorBox.style.backgroundColor = color;
+                document.body.style.backgroundColor = color;
+
+                var brightness = calculateBrightness(red, green, blue);
+                var textColor = brightness > 128 ? '#000000' : '#FFFFFF';
+
+                colorValue.style.color = textColor;
+
+                // Displaying RGBA and HEX
+                colorValue.innerHTML = `Alpha: ${alphaTrimmed}, Red: ${red}, Green: ${green}, Blue: ${blue}<br>Color: ${color} ${hexColor}`;
+
+                // Get the color name
+                getColorNameFromAPI(red, green, blue);
+
+            } else {
+                showAlert('Please enter a valid 8-character hex code in AARRGGBB format.');
+            }
+        }
+
+        function calculateBrightness(r, g, b) {
+            return (0.2126 * r + 0.7152 * g + 0.0722 * b);
+        }
+
+        function getColorNameFromAPI(r, g, b) {
+    fetch(`https://www.thecolorapi.com/id?rgb=rgb(${r},${g},${b})`)
+        .then(response => response.json())
+        .then(data => {
+            // Get the color name from the API response
+            var colorName = document.getElementById('colorName');
+            colorName.innerHTML = data.name.value;
+
+            // Calculate brightness of the color to determine text color
+            var brightness = calculateBrightness(r, g, b); // Use r, g, b for brightness calculation
+            var textColor = brightness > 128 ? '#000000' : '#FFFFFF'; // Dark or light text color
+            colorName.style.color = textColor; // Apply the text color to colorName element
+        })
+        .catch(err => {
+            console.log('Error fetching color name:', err);
+            var colorName = document.getElementById('colorName');
+            colorName.innerHTML = 'Custom Color'; // Fallback in case of an error
+            colorName.style.color = '#FFFFFF'; // Set fallback text color to white
+        });
+}
+
+        function showAlert(message) {
+            const alertModal = document.getElementById('alert-modal');
+            const alertMessage = document.getElementById('alert-message');
+
+            const maxLineLength = 40;
+            let formattedMessage = '';
+            let currentLine = '';
+
+            const words = message.split(' ');
+
+            words.forEach(word => {
+                if (currentLine.length + word.length + 1 > maxLineLength) {
+                    formattedMessage += currentLine + '<br>';
+                    currentLine = word;
+                } else {
+                    currentLine = currentLine ? `${currentLine} ${word}` : word;
+                }
+            });
+
+            if (currentLine) {
+                formattedMessage += currentLine;
+            }
+
+            alertMessage.innerHTML = formattedMessage;
+
+            alertModal.classList.remove('hide');
+            alertModal.classList.add('show');
+            alertModal.style.display = 'flex';
+
+            document.getElementById('alert-ok-btn').onclick = () => {
+                alertModal.classList.remove('show');
+                alertModal.classList.add('hide');
+                setTimeout(() => {
+                    alertModal.style.display = 'none';
+                }, 300);
+            };
+        }
+    </script>
+
+</body>
+</html>
